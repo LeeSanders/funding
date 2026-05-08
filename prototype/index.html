@@ -1,0 +1,2634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>基金分析系统高保真 Demo</title>
+    <link rel="icon" href="data:," />
+    <style>
+      :root {
+        --bg: #07111f;
+        --bg-soft: #0d1830;
+        --panel: rgba(10, 20, 38, 0.78);
+        --panel-strong: rgba(15, 27, 49, 0.94);
+        --panel-lite: rgba(255, 255, 255, 0.04);
+        --text: #e8eefc;
+        --muted: #92a0bf;
+        --line: rgba(255, 255, 255, 0.08);
+        --line-strong: rgba(255, 255, 255, 0.16);
+        --brand: #5b8cff;
+        --brand-2: #27d3ff;
+        --green: #22c55e;
+        --green-soft: rgba(34, 197, 94, 0.16);
+        --amber: #f59e0b;
+        --amber-soft: rgba(245, 158, 11, 0.16);
+        --red: #ef4444;
+        --red-soft: rgba(239, 68, 68, 0.16);
+        --purple: #8b5cf6;
+        --shadow: 0 24px 80px rgba(3, 9, 18, 0.35);
+        --radius-xl: 28px;
+        --radius-lg: 20px;
+        --radius-md: 16px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(91, 140, 255, 0.22), transparent 32%),
+          radial-gradient(circle at top right, rgba(39, 211, 255, 0.18), transparent 28%),
+          linear-gradient(180deg, #07111f, #0a1222 35%, #09111d);
+        color: var(--text);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        padding: 24px 20px;
+        border-right: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(8, 17, 32, 0.98), rgba(9, 17, 31, 0.92));
+        backdrop-filter: blur(14px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 26px;
+      }
+
+      .brand-mark {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        box-shadow: 0 16px 30px rgba(91, 140, 255, 0.28);
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .brand p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .nav-title {
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #7082ab;
+        margin-bottom: 12px;
+      }
+
+      .nav {
+        display: grid;
+        gap: 10px;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border: 1px solid transparent;
+        border-radius: 16px;
+        color: #cfdbfb;
+        background: transparent;
+        transition: 0.25s ease;
+      }
+
+      .nav-link:hover,
+      .nav-link.active {
+        background: rgba(91, 140, 255, 0.14);
+        border-color: rgba(91, 140, 255, 0.22);
+        transform: translateX(3px);
+      }
+
+      .nav-icon {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        box-shadow: 0 0 0 4px rgba(91, 140, 255, 0.14);
+      }
+
+      .sidebar-card {
+        margin-top: 26px;
+        padding: 16px;
+        border-radius: 18px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+      }
+
+      .sidebar-card h3,
+      .card-title {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+
+      .sidebar-card p,
+      .card-note {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 13px;
+      }
+
+      .sidebar-card .kpi {
+        margin-top: 14px;
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .sidebar-card .kpi strong {
+        font-size: 18px;
+      }
+
+      .main {
+        padding: 24px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 22px;
+        padding: 14px 18px;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: rgba(10, 19, 34, 0.68);
+        backdrop-filter: blur(18px);
+        position: sticky;
+        top: 18px;
+        z-index: 20;
+      }
+
+      .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .topbar-title {
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .topbar-sub {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .live-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(34, 197, 94, 0.12);
+        color: #9ff2b8;
+        border: 1px solid rgba(34, 197, 94, 0.16);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .live-pill::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.12);
+      }
+
+      .topbar-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .ghost-btn,
+      .primary-btn,
+      .tag-btn {
+        border-radius: 14px;
+        padding: 11px 16px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text);
+        transition: 0.2s ease;
+      }
+
+      .ghost-btn:hover,
+      .tag-btn:hover {
+        border-color: var(--line-strong);
+        transform: translateY(-1px);
+      }
+
+      .primary-btn {
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        border: 0;
+        color: #fff;
+        box-shadow: 0 14px 28px rgba(91, 140, 255, 0.24);
+      }
+
+      .hero {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        padding: 26px;
+        background:
+          radial-gradient(circle at 20% 15%, rgba(91, 140, 255, 0.18), transparent 30%),
+          radial-gradient(circle at 85% 25%, rgba(39, 211, 255, 0.12), transparent 25%),
+          linear-gradient(135deg, rgba(12, 22, 42, 0.95), rgba(9, 16, 31, 0.96));
+        box-shadow: var(--shadow);
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.12fr 0.88fr;
+        gap: 22px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border: 1px solid rgba(91, 140, 255, 0.18);
+        border-radius: 999px;
+        color: #c9dafc;
+        background: rgba(91, 140, 255, 0.08);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .hero h2 {
+        margin: 16px 0 12px;
+        font-size: 36px;
+        line-height: 1.18;
+      }
+
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.8;
+        max-width: 760px;
+      }
+
+      .hero-tags {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .hero-tag {
+        padding: 9px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: #d7e2fb;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .search-panel {
+        padding: 20px;
+        border-radius: 24px;
+        background: rgba(8, 16, 30, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .search-panel h3,
+      .panel-head h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .search-panel p,
+      .panel-head p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 13px;
+      }
+
+      .search-row {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+      }
+
+      .search-input {
+        position: relative;
+      }
+
+      .search-input input {
+        width: 100%;
+        padding: 16px 18px 16px 52px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        outline: none;
+      }
+
+      .search-input::before {
+        content: "#";
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9eb3dd;
+        font-weight: 800;
+        font-size: 18px;
+      }
+
+      .search-hint,
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 10px;
+        line-height: 1.6;
+      }
+
+      .quick-codes {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+        color: #dce7ff;
+        font-size: 12px;
+        transition: 0.2s ease;
+      }
+
+      .chip:hover,
+      .chip.active {
+        border-color: rgba(91, 140, 255, 0.36);
+        background: rgba(91, 140, 255, 0.14);
+      }
+
+      .hero-stats {
+        margin-top: 22px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .stat-card,
+      .panel,
+      .floating-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(14px);
+      }
+
+      .stat-card {
+        padding: 18px;
+      }
+
+      .stat-label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .stat-value {
+        margin-top: 10px;
+        font-size: 30px;
+        font-weight: 800;
+      }
+
+      .stat-delta {
+        margin-top: 10px;
+        font-size: 12px;
+      }
+
+      .up {
+        color: #89f0ad;
+      }
+
+      .flat {
+        color: #f8d17a;
+      }
+
+      .section {
+        margin-top: 24px;
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .section-header h3 {
+        margin: 0;
+        font-size: 22px;
+      }
+
+      .section-header p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .section-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .layout-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .grid-3 {
+        grid-template-columns: 1.08fr 0.92fr 0.9fr;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: start;
+        margin-bottom: 14px;
+      }
+
+      .panel-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        color: #cbd9fb;
+        font-size: 12px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        min-width: max-content;
+        width: auto;
+        text-align: center;
+        word-break: keep-all;
+      }
+
+      .fund-list,
+      .event-list,
+      .reason-list,
+      .impact-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .fund-item,
+      .event-item,
+      .reason-item,
+      .impact-item {
+        padding: 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text);
+        text-align: left;
+        transition: 0.22s ease;
+      }
+
+      .fund-item:hover,
+      .fund-item.active,
+      .event-item:hover,
+      .event-item.active,
+      .impact-item:hover {
+        border-color: rgba(91, 140, 255, 0.3);
+        transform: translateY(-2px);
+        background: rgba(91, 140, 255, 0.08);
+      }
+
+      .fund-row,
+      .event-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .fund-name,
+      .event-title,
+      .impact-title {
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .fund-meta,
+      .event-meta,
+      .impact-meta,
+      .reason-item p {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .mini-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .mini-badge.good {
+        color: #98f0b3;
+        background: var(--green-soft);
+      }
+
+      .mini-badge.buy {
+        color: #a7f3d0;
+        background: rgba(34, 197, 94, 0.18);
+        border: 1px solid rgba(34, 197, 94, 0.22);
+      }
+
+      .mini-badge.phased {
+        color: #9fe8ff;
+        background: rgba(39, 211, 255, 0.14);
+        border: 1px solid rgba(39, 211, 255, 0.2);
+      }
+
+      .mini-badge.config {
+        color: #d6c6ff;
+        background: rgba(139, 92, 246, 0.14);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+      }
+
+      .mini-badge.warn {
+        color: #ffd680;
+        background: var(--amber-soft);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+      }
+
+      .mini-badge.bad {
+        color: #ff9f9f;
+        background: var(--red-soft);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+
+      .radar-bars,
+      .score-bars {
+        display: grid;
+        gap: 14px;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: 88px 1fr 42px;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+      }
+
+      .bar-track {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+
+      .bar-fill {
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--brand), var(--brand-2));
+        width: 0;
+        transition: width 0.7s ease;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 16px;
+      }
+
+      .analysis-card {
+        padding: 20px;
+      }
+
+      .fund-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 18px;
+      }
+
+      .fund-code {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(91, 140, 255, 0.12);
+        color: #cfe0ff;
+        border: 1px solid rgba(91, 140, 255, 0.16);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .fund-header h3 {
+        margin: 10px 0 8px;
+        font-size: 30px;
+      }
+
+      .fund-header p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .score-hero {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 16px;
+        align-items: center;
+      }
+
+      .score-ring {
+        width: 152px;
+        height: 152px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: conic-gradient(var(--brand) 0 60%, rgba(255, 255, 255, 0.08) 60% 100%);
+        transition: background 0.7s ease;
+      }
+
+      .score-ring::before {
+        content: "";
+        width: 112px;
+        height: 112px;
+        border-radius: 50%;
+        background: rgba(11, 18, 33, 0.96);
+        border: 1px solid var(--line);
+      }
+
+      .score-value {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 34px;
+        font-weight: 800;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .score-wrap {
+        position: relative;
+        width: 152px;
+        height: 152px;
+      }
+
+      .analysis-summary {
+        display: grid;
+        gap: 10px;
+      }
+
+      .analysis-summary h4 {
+        margin: 0;
+        font-size: 22px;
+      }
+
+      .analysis-summary p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      .summary-strip {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .summary-box {
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .summary-box strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 24px;
+      }
+
+      .chart-card {
+        margin-top: 18px;
+        padding: 18px;
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.02));
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .chart-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .chart-title {
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .chart-legend {
+        display: flex;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+
+      .dot.blue {
+        background: var(--brand);
+      }
+
+      .dot.cyan {
+        background: var(--brand-2);
+      }
+
+      .fake-chart {
+        margin-top: 16px;
+        width: 100%;
+        height: 220px;
+      }
+
+      .tabs,
+      .segmented,
+      .filter-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .tab-btn,
+      .segment-btn,
+      .filter-btn {
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        color: #dbe6ff;
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .tab-btn.active,
+      .segment-btn.active,
+      .filter-btn.active,
+      .tag-btn.active {
+        background: rgba(91, 140, 255, 0.16);
+        border-color: rgba(91, 140, 255, 0.26);
+      }
+
+      .analysis-side {
+        display: grid;
+        gap: 16px;
+      }
+
+      .reasons-panel,
+      .news-panel,
+      .risk-panel,
+      .recommendation-panel {
+        padding: 18px;
+      }
+
+      .reason-item strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .analysis-loading {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+        color: #d5e4ff;
+        font-size: 13px;
+      }
+
+      .analysis-loading.visible {
+        display: inline-flex;
+      }
+
+      .spinner {
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-top-color: var(--brand-2);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+
+      .recommendation-layout {
+        display: grid;
+        grid-template-columns: 0.88fr 1.12fr;
+        gap: 16px;
+      }
+
+      .portfolio-layout {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 16px;
+      }
+
+      .portfolio-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .portfolio-card {
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .portfolio-card strong {
+        display: block;
+        margin-top: 10px;
+        font-size: 28px;
+      }
+
+      .portfolio-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+      }
+
+      .upload-box {
+        margin-top: 16px;
+        padding: 18px;
+        border-radius: 18px;
+        border: 1px dashed rgba(91, 140, 255, 0.35);
+        background: rgba(91, 140, 255, 0.08);
+      }
+
+      .upload-box h4 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+
+      .upload-box p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 13px;
+      }
+
+      .ocr-status {
+        margin-top: 14px;
+        display: none;
+        align-items: center;
+        gap: 10px;
+        color: #d7e4ff;
+        font-size: 13px;
+      }
+
+      .ocr-status.visible {
+        display: inline-flex;
+      }
+
+      .holdings-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+
+      .holdings-table th,
+      .holdings-table td {
+        padding: 14px 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        text-align: left;
+        font-size: 13px;
+      }
+
+      .holdings-table th {
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .holdings-code {
+        font-weight: 800;
+        color: #dce7ff;
+      }
+
+      .profit-up {
+        color: #9ef2bb;
+      }
+
+      .profit-down {
+        color: #ffb0b0;
+      }
+
+      .ocr-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .ocr-item {
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .ocr-item-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .ocr-item strong {
+        font-size: 15px;
+      }
+
+      .ocr-item p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 13px;
+      }
+
+      .strategy-summary {
+        display: grid;
+        gap: 12px;
+      }
+
+      .strategy-card {
+        padding: 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .strategy-card h4 {
+        margin: 0 0 8px;
+      }
+
+      .strategy-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 13px;
+      }
+
+      .rec-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .rec-table th,
+      .rec-table td {
+        padding: 15px 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        text-align: left;
+        vertical-align: top;
+        font-size: 13px;
+      }
+
+      .rec-table th {
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .rec-row {
+        transition: 0.2s ease;
+      }
+
+      .rec-row:hover,
+      .rec-row.active {
+        background: rgba(91, 140, 255, 0.08);
+      }
+
+      .rec-code {
+        font-weight: 800;
+        color: #d7e4ff;
+      }
+
+      .score-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 50px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(39, 211, 255, 0.12);
+        color: #95f2ff;
+        font-weight: 700;
+      }
+
+      .news-layout {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 16px;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 12px;
+      }
+
+      .timeline-item {
+        display: grid;
+        grid-template-columns: 78px 1fr;
+        gap: 12px;
+      }
+
+      .timeline-time {
+        font-size: 12px;
+        color: var(--muted);
+        padding-top: 6px;
+      }
+
+      .timeline-card {
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .timeline-card strong {
+        display: block;
+        font-size: 15px;
+      }
+
+      .timeline-card p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 13px;
+      }
+
+      .footer-note {
+        margin-top: 24px;
+        padding: 16px 18px;
+        border-radius: 18px;
+        border: 1px solid rgba(245, 158, 11, 0.18);
+        background: rgba(245, 158, 11, 0.08);
+        color: #ffd89c;
+        font-size: 13px;
+        line-height: 1.8;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 1380px) {
+        .hero-grid,
+        .workspace,
+        .portfolio-layout,
+        .recommendation-layout,
+        .news-layout,
+        .layout-grid.grid-3,
+        .layout-grid.grid-2 {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 1120px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: relative;
+          height: auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .topbar {
+          position: relative;
+          top: 0;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .main {
+          padding: 16px;
+        }
+
+        .hero-stats,
+        .portfolio-summary,
+        .summary-strip {
+          grid-template-columns: 1fr;
+        }
+
+        .search-row,
+        .score-hero {
+          grid-template-columns: 1fr;
+        }
+
+        .fund-header,
+        .section-header,
+        .topbar {
+          flex-direction: column;
+          align-items: start;
+        }
+
+        .timeline-item {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <div>
+            <h1>基金分析系统</h1>
+            <p>高保真交互原型 Demo</p>
+          </div>
+        </div>
+
+        <div class="nav-title">Workspace</div>
+        <nav class="nav">
+          <a class="nav-link active" href="#overview"><span class="nav-icon"></span>首页总览</a>
+          <a class="nav-link" href="#analysis"><span class="nav-icon"></span>单基金分析</a>
+          <a class="nav-link" href="#portfolio"><span class="nav-icon"></span>持仓估值</a>
+          <a class="nav-link" href="#recommendation"><span class="nav-icon"></span>基金推荐</a>
+          <a class="nav-link" href="#news"><span class="nav-icon"></span>新闻事件</a>
+        </nav>
+
+        <div class="sidebar-card">
+          <h3>交互说明</h3>
+          <p>输入基金代码可模拟分析流程，点击推荐行或首页基金卡片会联动分析页内容。</p>
+          <div class="kpi">
+            <div>
+              <div class="card-note">实时交互点</div>
+              <strong>7</strong>
+            </div>
+            <div>
+              <div class="card-note">核心页面</div>
+              <strong>4</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <h3>产品定位</h3>
+          <p>优先满足“输入基金代码立即判断是否可买”，并在同一页面呈现技术面、消息面、风险与推荐联动。</p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="topbar-left">
+            <div>
+              <div class="topbar-title">基金研究工作台</div>
+              <div class="topbar-sub">适合先看产品形态，再反推技术实现边界</div>
+            </div>
+            <span class="live-pill">模拟实时分析中</span>
+          </div>
+          <div class="topbar-actions">
+            <button class="ghost-btn" id="refreshDashboard">刷新市场快照</button>
+            <button class="primary-btn" id="jumpToAnalysis">用代码开始分析</button>
+          </div>
+        </div>
+
+        <section id="overview" class="hero">
+          <div class="hero-grid">
+            <div>
+              <span class="eyebrow">基金代码为一级入口</span>
+              <h2>更接近真实产品的基金分析系统页面 Demo</h2>
+              <p>
+                这一版不再只是静态布局，而是把核心路径做成可交互工作台。用户可以从基金代码查询进入单基金分析，也可以从推荐池反向进入详情，消息面和技术面会同时联动更新。
+              </p>
+              <div class="hero-tags">
+                <span class="hero-tag">单基金买入判断</span>
+                <span class="hero-tag">技术面 + 消息面联动</span>
+                <span class="hero-tag">推荐池可点击反查</span>
+                <span class="hero-tag">事件影响基金映射</span>
+              </div>
+            </div>
+
+            <div class="search-panel">
+              <h3>基金代码查询</h3>
+              <p>支持输入 6 位基金代码直接进入分析，不需要再通过名称做二次确认。</p>
+              <div class="search-row">
+                <div class="search-input">
+                  <input id="fundCodeInput" value="016370" placeholder="输入基金代码，例如 016370" />
+                </div>
+                <button class="primary-btn" id="analyzeBtn">立即分析</button>
+              </div>
+              <div class="analysis-loading" id="analysisLoading">
+                <span class="spinner"></span>
+                <span>正在拉取净值、主题映射、新闻事件并生成分析结论...</span>
+              </div>
+              <div class="search-hint">演示可用代码：`016370`、`021933`、`021735`、`000011`</div>
+              <div class="quick-codes">
+                <button class="chip quick-code active" data-code="016370">016370</button>
+                <button class="chip quick-code" data-code="021933">021933</button>
+                <button class="chip quick-code" data-code="021735">021735</button>
+                <button class="chip quick-code" data-code="000011">000011</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat-card">
+              <div class="stat-label">市场热度</div>
+              <div class="stat-value" id="marketHeat">73</div>
+              <div class="stat-delta up" id="marketHeatDelta">较昨日 +6，成长主题回暖</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">高优先级事件</div>
+              <div class="stat-value" id="eventCount">5</div>
+              <div class="stat-delta flat">宏观、行业、公告三类综合排序</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">推荐基金池</div>
+              <div class="stat-value" id="poolCount">28</div>
+              <div class="stat-delta up">平衡型当前胜率更高</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">消息有效窗口</div>
+              <div class="stat-value">24h</div>
+              <div class="stat-delta flat">短期事件优先影响推荐排序</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <h3>首页内容区</h3>
+              <p>更像真实产品首页：先看关注池、主题热度和消息摘要，再进入分析。</p>
+            </div>
+            <div class="section-actions">
+              <button class="tag-btn active" data-home-filter="focus">今日关注</button>
+              <button class="tag-btn" data-home-filter="momentum">趋势优先</button>
+              <button class="tag-btn" data-home-filter="risk">风险提醒</button>
+            </div>
+          </div>
+
+          <div class="layout-grid grid-3">
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>今日关注基金</h3>
+                  <p>点击基金卡片，直接同步切换到分析页基金内容。</p>
+                </div>
+                <span class="panel-tag" id="homeFilterTag">当前视图：今日关注</span>
+              </div>
+              <div class="fund-list" id="focusFundList"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>热点主题雷达</h3>
+                  <p>决定推荐引擎更偏向哪些主题和风格。</p>
+                </div>
+                <span class="panel-tag">可联动推荐策略</span>
+              </div>
+              <div class="radar-bars" id="themeBars"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>关键新闻摘要</h3>
+                  <p>不是资讯堆砌，而是与基金推荐和买点判断相关的摘要。</p>
+                </div>
+                <span class="panel-tag">近 24 小时</span>
+              </div>
+              <div class="event-list" id="headlineEvents"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="analysis" class="section">
+          <div class="section-header">
+            <div>
+              <h3>单基金分析工作区</h3>
+              <p>核心路径是输入基金代码或点击推荐结果后，右侧分析内容立即重绘。</p>
+            </div>
+            <div class="tabs">
+              <button class="tab-btn active" data-analysis-tab="summary">综合结论</button>
+              <button class="tab-btn" data-analysis-tab="technical">技术面</button>
+              <button class="tab-btn" data-analysis-tab="news">消息面</button>
+            </div>
+          </div>
+
+          <div class="workspace">
+            <div class="panel analysis-card">
+              <div class="fund-header">
+                <div>
+                  <span class="fund-code" id="analysisCode">016370</span>
+                  <h3 id="analysisName">信澳业绩驱动混合A</h3>
+                  <p id="analysisDesc">混合型-偏股 | 风险等级：中高 | 更新时间：2026-05-06 15:30 | 支持基金代码直达分析</p>
+                </div>
+                <span class="mini-badge good" id="analysisDecision">可分批关注</span>
+              </div>
+
+              <div class="score-hero">
+                <div class="score-wrap">
+                  <div class="score-ring" id="scoreRing"></div>
+                  <div class="score-value" id="scoreValue">78</div>
+                </div>
+                <div class="analysis-summary">
+                  <h4 id="analysisTitle">当前适合分批买入，不建议追高重仓</h4>
+                  <p id="analysisSummary">技术面中期趋势仍偏强，消息面存在持续催化，但短期涨幅已不低，更适合等待回踩或采用分仓进入。</p>
+                  <div class="quick-codes">
+                    <span class="chip">置信度：<strong id="confidenceValue">中高</strong></span>
+                    <span class="chip">观察周期：<strong id="holdingWindow">1-3 周</strong></span>
+                    <span class="chip">建议动作：<strong id="actionText">分批介入</strong></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="summary-strip">
+                <div class="summary-box">
+                  <div class="card-note">技术面</div>
+                  <strong id="technicalScore">76</strong>
+                  <div class="card-note" id="technicalHint">中期均线偏强</div>
+                </div>
+                <div class="summary-box">
+                  <div class="card-note">消息面</div>
+                  <strong id="newsScore">82</strong>
+                  <div class="card-note" id="newsHint">主题催化延续</div>
+                </div>
+                <div class="summary-box">
+                  <div class="card-note">风险项</div>
+                  <strong id="riskScore">34</strong>
+                  <div class="card-note" id="riskHint">短期追高风险存在</div>
+                </div>
+              </div>
+
+              <div class="chart-card">
+                <div class="chart-head">
+                  <div class="chart-title">近 30 日趋势与事件冲击</div>
+                  <div class="chart-legend">
+                    <span><span class="dot blue"></span> 基金趋势</span>
+                    <span><span class="dot cyan"></span> 相关主题强度</span>
+                  </div>
+                </div>
+                <svg class="fake-chart" viewBox="0 0 800 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="areaBlue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#5B8CFF" stop-opacity="0.36" />
+                      <stop offset="100%" stop-color="#5B8CFF" stop-opacity="0" />
+                    </linearGradient>
+                    <linearGradient id="areaCyan" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#27D3FF" stop-opacity="0.18" />
+                      <stop offset="100%" stop-color="#27D3FF" stop-opacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M30 180 C90 170 120 150 180 146 C250 142 280 108 340 114 C410 120 452 74 520 80 C595 87 635 46 710 56 L710 210 L30 210 Z" fill="url(#areaBlue)"></path>
+                  <path d="M30 188 C115 184 150 146 220 152 C290 158 342 112 405 122 C470 132 525 96 600 104 C658 110 694 82 770 90 L770 210 L30 210 Z" fill="url(#areaCyan)"></path>
+                  <path d="M30 180 C90 170 120 150 180 146 C250 142 280 108 340 114 C410 120 452 74 520 80 C595 87 635 46 710 56" stroke="#5B8CFF" stroke-width="4" stroke-linecap="round"></path>
+                  <path d="M30 188 C115 184 150 146 220 152 C290 158 342 112 405 122 C470 132 525 96 600 104 C658 110 694 82 770 90" stroke="#27D3FF" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 8"></path>
+                  <g fill="#7e94bd" font-size="11">
+                    <text x="30" y="208">30d</text>
+                    <text x="190" y="208">20d</text>
+                    <text x="355" y="208">10d</text>
+                    <text x="520" y="208">5d</text>
+                    <text x="735" y="208">今日</text>
+                  </g>
+                </svg>
+              </div>
+            </div>
+
+            <div class="analysis-side">
+              <div class="panel reasons-panel">
+                <div class="panel-head">
+                  <div>
+                    <h3 id="reasonPanelTitle">综合结论拆解</h3>
+                    <p id="reasonPanelDesc">展示当前判断的主要支持因素。</p>
+                  </div>
+                  <span class="panel-tag" id="reasonTabTag">综合</span>
+                </div>
+                <div class="reason-list" id="reasonList"></div>
+              </div>
+
+              <div class="panel risk-panel">
+                <div class="panel-head">
+                  <div>
+                    <h3>风险提示</h3>
+                    <p>系统必须同步给出反向因素，避免只做乐观推荐。</p>
+                  </div>
+                </div>
+                <div class="reason-list" id="riskList"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="portfolio" class="section">
+          <div class="section-header">
+            <div>
+              <h3>持仓实时估值中心</h3>
+              <p>支持根据持仓动态更新每日收益，也支持 OCR 从持仓截图自动解析基金代码和份额。</p>
+            </div>
+            <div class="section-actions">
+              <button class="ghost-btn" id="refreshValuation">刷新盘中估值</button>
+              <button class="primary-btn" id="simulateOcrBtn">模拟 OCR 识别</button>
+            </div>
+          </div>
+
+          <div class="portfolio-layout">
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>组合总览</h3>
+                  <p>默认展示用户当日持仓估值、盘中收益与更新时间。</p>
+                </div>
+                <span class="panel-tag" id="valuationUpdateTag">估值更新：14:36</span>
+              </div>
+
+              <div class="portfolio-summary">
+                <div class="portfolio-card">
+                  <div class="card-note">持仓总市值</div>
+                  <strong id="portfolioMarketValue">128,430</strong>
+                  <div class="card-note">人民币元</div>
+                </div>
+                <div class="portfolio-card">
+                  <div class="card-note">今日预估收益</div>
+                  <strong class="profit-up" id="portfolioDailyProfit">+1,286</strong>
+                  <div class="card-note" id="portfolioDailyRate">+1.01%</div>
+                </div>
+                <div class="portfolio-card">
+                  <div class="card-note">持仓基金数</div>
+                  <strong id="portfolioFundCount">4</strong>
+                  <div class="card-note">支持基金代码直连详情</div>
+                </div>
+              </div>
+
+              <div class="portfolio-actions">
+                <span class="chip">估值仅供参考，以实际净值为准</span>
+                <span class="chip">支持 OCR 导入后人工校对</span>
+              </div>
+
+              <div class="upload-box">
+                <h4>OCR 持仓识别入口</h4>
+                <p>后续支持上传基金 App、券商或银行持仓截图，自动识别基金代码、名称、份额和金额，并生成待确认持仓列表。</p>
+                <div class="portfolio-actions">
+                  <button class="primary-btn" id="simulateUploadBtn">模拟上传截图</button>
+                  <button class="ghost-btn">手动录入持仓</button>
+                </div>
+                <div class="ocr-status" id="ocrStatus">
+                  <span class="spinner"></span>
+                  <span>正在识别图片中的基金代码、名称、份额和金额...</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>持仓列表与 OCR 结果</h3>
+                  <p>左边看组合收益，右边看 OCR 自动解析结果并确认入库。</p>
+                </div>
+                <span class="panel-tag" id="ocrResultTag">OCR 待确认 0 条</span>
+              </div>
+
+              <table class="holdings-table">
+                <thead>
+                  <tr>
+                    <th>基金代码</th>
+                    <th>基金名称</th>
+                    <th>持有份额</th>
+                    <th>估值涨跌</th>
+                    <th>今日预估收益</th>
+                  </tr>
+                </thead>
+                <tbody id="holdingsBody"></tbody>
+              </table>
+
+              <div class="panel-head" style="margin-top: 16px;">
+                <div>
+                  <h3>OCR 识别结果</h3>
+                  <p>上传截图后，先生成候选持仓，再由用户确认。</p>
+                </div>
+                <button class="ghost-btn" id="confirmOcrBtn">一键加入持仓</button>
+              </div>
+              <div class="ocr-list" id="ocrList"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="recommendation" class="section">
+          <div class="section-header">
+            <div>
+              <h3>基金推荐中心</h3>
+              <p>策略切换后会重排推荐池，点击任一基金可直接带入分析页。</p>
+            </div>
+            <div class="segmented">
+              <button class="segment-btn active" data-strategy="balanced">平衡型</button>
+              <button class="segment-btn" data-strategy="steady">稳健型</button>
+              <button class="segment-btn" data-strategy="aggressive">进取型</button>
+            </div>
+          </div>
+
+          <div class="recommendation-layout">
+            <div class="panel recommendation-panel">
+              <div class="panel-head">
+                <div>
+                  <h3 id="strategyTitle">平衡型推荐逻辑</h3>
+                  <p id="strategyDesc">技术面、消息面、稳定性和主题热度均衡打分，适合先做产品一期默认模式。</p>
+                </div>
+                <span class="panel-tag" id="strategyTag">默认策略</span>
+              </div>
+              <div class="strategy-summary">
+                <div class="strategy-card">
+                  <h4>适合用户</h4>
+                  <p id="strategyUser">不想只追热点，也不想太保守，偏向“可解释 + 稳妥”的推荐方式。</p>
+                </div>
+                <div class="strategy-card">
+                  <h4>核心因子</h4>
+                  <p id="strategyFactors">技术面 35%，消息面 25%，稳定性 20%，主题热度 20%。</p>
+                </div>
+                <div class="strategy-card">
+                  <h4>当前筛选标签</h4>
+                  <p id="strategyFilter">主题：AI 算力 / 红利低波，持有周期：1-3 个月，风险偏好：平衡。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel recommendation-panel">
+              <div class="panel-head">
+                <div>
+                  <h3>推荐列表</h3>
+                  <p>行级交互已接通，点击任意基金可直接刷新上方分析页。</p>
+                </div>
+                <span class="panel-tag" id="recCountTag">Top 3</span>
+              </div>
+              <table class="rec-table">
+                <thead>
+                  <tr>
+                    <th>排名</th>
+                    <th>基金代码</th>
+                    <th>基金名称</th>
+                    <th>结论</th>
+                    <th>分数</th>
+                    <th>核心理由</th>
+                    <th>风险</th>
+                  </tr>
+                </thead>
+                <tbody id="recommendationBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="news" class="section">
+          <div class="section-header">
+            <div>
+              <h3>新闻事件中心</h3>
+              <p>不是资讯门户，而是通过主题过滤来观察事件如何影响基金与推荐排序。</p>
+            </div>
+            <div class="filter-row">
+              <button class="filter-btn active" data-event-theme="all">全部主题</button>
+              <button class="filter-btn" data-event-theme="AI 算力">AI 算力</button>
+              <button class="filter-btn" data-event-theme="红利低波">红利低波</button>
+              <button class="filter-btn" data-event-theme="创新药">创新药</button>
+            </div>
+          </div>
+
+          <div class="news-layout">
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>事件时间线</h3>
+                  <p>支持主题过滤，便于观察消息面对推荐排序的影响。</p>
+                </div>
+                <button class="ghost-btn" id="refreshEvents">刷新今日事件</button>
+              </div>
+              <div class="timeline" id="newsTimeline"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h3>事件影响基金</h3>
+                  <p>点击基金后同样会回填到分析页。</p>
+                </div>
+                <span class="panel-tag" id="impactTag">关联度排序</span>
+              </div>
+              <div class="impact-list" id="eventImpactList"></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="footer-note">
+          这版已经接近真实产品 Demo：具备主视觉、工作台布局、代码查询交互、推荐池联动、事件过滤和分析状态切换。你看完之后，如果方向对，我下一步就可以直接按这个页面结构反推接口和技术方案。
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const API_BASE = "http://127.0.0.1:8000/api/v1";
+
+      const funds = {
+        "016370": {
+          code: "016370",
+          name: "信澳业绩驱动混合A",
+          type: "混合型-偏股",
+          riskLevel: "中高",
+          updatedAt: "2026-05-06 15:30",
+          decision: "可分批关注",
+          decisionTone: "good",
+          score: 78,
+          confidence: "中高",
+          holdingWindow: "1-3 周",
+          action: "分批介入",
+          summaryTitle: "当前适合分批买入，不建议追高重仓",
+          summaryText:
+            "技术面中期趋势仍偏强，消息面存在持续催化，但短期涨幅已不低，更适合等待回踩或采用分仓进入。",
+          technical: { score: 76, hint: "中期均线偏强" },
+          news: { score: 82, hint: "主题催化延续" },
+          risk: { score: 34, hint: "短期追高风险存在" },
+          reasons: {
+            summary: [
+              { title: "趋势仍在上行区间", text: "20 日趋势斜率为正，阶段高点虽近，但结构没有明显破坏。" },
+              { title: "消息有效性较高", text: "最近 3 天连续出现正向产业事件，且与基金风格映射度较高。" },
+              { title: "更适合分仓而非梭哈", text: "当前位置并非绝对低位，分批进入可以降低短期波动冲击。" }
+            ],
+            technical: [
+              { title: "中期趋势 76 分", text: "5/10/20 日均线维持上拐，趋势仍在多头框架内。" },
+              { title: "动量处于中高位", text: "近 10 日涨幅较强，但加速度开始放缓，说明继续上冲需要新催化。" },
+              { title: "回撤控制尚可", text: "近阶段最大回撤可接受，但不适合在大涨后一次性重仓。" }
+            ],
+            news: [
+              { title: "主题催化仍然有效", text: "相关赛道出现持续消息支撑，且事件密度在近 24 小时内较高。" },
+              { title: "行业景气叙事强化", text: "市场对相关方向的风险偏好仍高，有利于短期排名维持。" },
+              { title: "但存在兑现压力", text: "若消息后续没有新增增量，短期波动会放大。" }
+            ]
+          },
+          events: [
+            { title: "行业景气数据改善", meta: "利好 | 强度高 | 关联度高 | 近 24h" },
+            { title: "政策表态偏积极", meta: "利好 | 强度中 | 时效 3 天" },
+            { title: "板块涨幅偏快", meta: "风险提醒 | 强度中 | 短期过热" }
+          ],
+          risks: [
+            { title: "短期追高风险", text: "板块已有一轮快速上涨，若继续强追，盈亏比开始下降。" },
+            { title: "消息落地后震荡", text: "热点资金若切换风格，相关基金回撤会明显放大。" }
+          ]
+        },
+        "021933": {
+          code: "021933",
+          name: "富国中证通信设备联接A",
+          type: "指数型-股票",
+          riskLevel: "高",
+          updatedAt: "2026-05-06 15:30",
+          decision: "建议买入",
+          decisionTone: "good",
+          score: 84,
+          confidence: "高",
+          holdingWindow: "2-4 周",
+          action: "顺势布局",
+          summaryTitle: "主题、趋势、消息三项共振，适合顺势配置",
+          summaryText:
+            "指数型产品和主题映射清晰，通信设备景气度数据持续走强，消息面和技术面形成共振，是当前推荐池中的强势方向。",
+          technical: { score: 85, hint: "趋势与动量共振" },
+          news: { score: 88, hint: "景气度持续抬升" },
+          risk: { score: 42, hint: "高波动主题需控仓" },
+          reasons: {
+            summary: [
+              { title: "指数映射更清晰", text: "基金与主题指数关联度高，消息面可以更直接作用到价格表现。" },
+              { title: "景气信号连续触发", text: "近 24 小时和近 3 天均有正向数据，主题热度保持高位。" },
+              { title: "适合做进攻型配置", text: "如果你接受波动，这只基金当前更像短中期强趋势品种。" }
+            ],
+            technical: [
+              { title: "趋势强度 85 分", text: "中期上行斜率陡峭，回撤后修复速度快。" },
+              { title: "短期相对强弱明显", text: "相对同类指数基金，动量和反弹效率更强。" },
+              { title: "需防高位振荡", text: "趋势虽强，但高波动主题下的洗盘会更剧烈。" }
+            ],
+            news: [
+              { title: "通信设备景气跟踪数据向上", text: "是当前消息面的核心正向因子，对短期推荐排名提升明显。" },
+              { title: "产业链资本开支预期改善", text: "市场对后续订单和业绩预期更积极。" },
+              { title: "资金关注度集中", text: "热点板块流入明显，但过热后也更容易震荡。" }
+            ]
+          },
+          events: [
+            { title: "通信设备景气跟踪数据向上", meta: "利好 | 强度高 | 主题 AI 算力 | 近 24h" },
+            { title: "资本开支预期改善", meta: "利好 | 强度中高 | 时效 3-7 天" },
+            { title: "热点关注度升温", meta: "利好伴随高波动 | 强度中" }
+          ],
+          risks: [
+            { title: "主题波动大", text: "这是进攻型方向，短期回撤幅度可能显著高于稳健型基金。" },
+            { title: "拥挤交易风险", text: "热点资金过于集中时，容易出现日内或阶段性大波动。" }
+          ]
+        },
+        "021735": {
+          code: "021735",
+          name: "景顺长城沪港深红利成长低波指数E",
+          type: "指数型-股票",
+          riskLevel: "中",
+          updatedAt: "2026-05-06 15:30",
+          decision: "观察中",
+          decisionTone: "warn",
+          score: 72,
+          confidence: "中",
+          holdingWindow: "1-2 月",
+          action: "等回调观察",
+          summaryTitle: "适合稳健配置，但进攻弹性一般",
+          summaryText:
+            "红利低波方向具备防守属性，适合在风格切换期做配置，但当前消息驱动没有成长板块那么强，适合观察低位回补机会。",
+          technical: { score: 70, hint: "低波结构稳定" },
+          news: { score: 68, hint: "资金回流但强度一般" },
+          risk: { score: 22, hint: "回撤控制较好" },
+          reasons: {
+            summary: [
+              { title: "低波属性明显", text: "适合不想承受大波动的配置型用户。" },
+              { title: "红利风格有资金回流", text: "消息面有小幅改善，但不属于强爆发方向。" },
+              { title: "适合当作平衡仓位", text: "更适合放在组合中做防守，而不是承担主要进攻职责。" }
+            ],
+            technical: [
+              { title: "净值波动较小", text: "在同类中回撤控制更优，技术形态更平缓。" },
+              { title: "上涨斜率一般", text: "稳，但不算快，更多是防守型趋势。" },
+              { title: "更适合逢回补仓", text: "上涨时追进去的效率不一定高。" }
+            ],
+            news: [
+              { title: "红利风格资金回流", text: "短期对低波方向形成支撑，但持续性仍需观察。" },
+              { title: "市场偏好仍在成长侧", text: "导致该方向暂时不占据消息主线。" },
+              { title: "稳健需求提升时更占优", text: "如果市场波动加剧，这类产品会更有吸引力。" }
+            ]
+          },
+          events: [
+            { title: "红利风格资金回流", meta: "利好 | 强度中 | 主题 红利低波 | 近 24h" },
+            { title: "防守型配置需求提升", meta: "中性偏利好 | 强度中 | 近 3 天" },
+            { title: "成长方向更强", meta: "相对偏空 | 强度弱 | 风格压制" }
+          ],
+          risks: [
+            { title: "进攻性不足", text: "如果你想找爆发型机会，这类基金并不占优。" },
+            { title: "消息刺激不够强", text: "短期缺少强主题催化时，排名容易被成长类产品压制。" }
+          ]
+        },
+        "000011": {
+          code: "000011",
+          name: "华夏大盘精选混合A",
+          type: "混合型-灵活",
+          riskLevel: "中高",
+          updatedAt: "2026-05-06 15:30",
+          decision: "暂时观望",
+          decisionTone: "warn",
+          score: 69,
+          confidence: "中",
+          holdingWindow: "等待明确拐点",
+          action: "暂不追买",
+          summaryTitle: "底层风格稳定，但当前缺少明显增量催化",
+          summaryText:
+            "基金自身管理较成熟，净值趋势不差，但当前市场偏好更集中在有明确主题催化的方向，因此暂不属于高优先级推荐。",
+          technical: { score: 72, hint: "中性偏稳" },
+          news: { score: 60, hint: "消息面一般" },
+          risk: { score: 28, hint: "整体风险可控" },
+          reasons: {
+            summary: [
+              { title: "底仓稳定", text: "适合作为长期观察对象，但当前不是效率最高的买点。" },
+              { title: "消息催化偏弱", text: "没有进入近期市场主线事件映射的核心名单。" },
+              { title: "观望优于追入", text: "除非出现新的主题或估值催化，否则暂时不急于配置。" }
+            ],
+            technical: [
+              { title: "趋势不差但不激进", text: "阶段走势平稳，缺少强突破信号。" },
+              { title: "回撤可接受", text: "防守性优于进攻性，适合中长期而非短线。" },
+              { title: "等待信号更合适", text: "等量价或消息出现更明确共振后再评估。" }
+            ],
+            news: [
+              { title: "消息面映射度较低", text: "近期事件与该基金风格没有形成高关联度。" },
+              { title: "风格偏均衡", text: "在强主题轮动行情下往往不占优。" },
+              { title: "适合做组合底仓", text: "如果做长期配置仍有价值，但不是当前主推。" }
+            ]
+          },
+          events: [
+            { title: "宏观流动性预期改善", meta: "中性偏利好 | 强度中 | 近 3 天" },
+            { title: "成长主题挤占关注度", meta: "相对偏空 | 强度中 | 推荐排名受压制" }
+          ],
+          risks: [
+            { title: "阶段弹性有限", text: "热点行情中容易跑输主题型基金。" },
+            { title: "短期不占主线", text: "在资金偏好明显聚焦时，持有体验可能一般。" }
+          ]
+        }
+      };
+
+      const homeFilters = {
+        focus: [
+          { code: "016370", meta: "结论：可分批关注 | 技术面 76 | 消息面 82 | 风险中等" },
+          { code: "021933", meta: "结论：建议买入 | 趋势与消息面共振，当前主线更明确" },
+          { code: "021735", meta: "结论：观察中 | 低波属性好，适合作为平衡仓位" }
+        ],
+        momentum: [
+          { code: "021933", meta: "趋势强度最优 | 相关主题热度高 | 但需控仓" },
+          { code: "016370", meta: "动量稳定，适合分仓进入 | 消息面支撑较强" },
+          { code: "000011", meta: "趋势偏稳，弹性一般 | 更适合中长期跟踪" }
+        ],
+        risk: [
+          { code: "021933", meta: "高波动主题 | 不适合低风险偏好用户重仓" },
+          { code: "016370", meta: "接近阶段压力位 | 建议等待更优介入点" },
+          { code: "021735", meta: "低波防守更优 | 但进攻性明显不足" }
+        ]
+      };
+
+      const themeData = [
+        { name: "AI 算力", value: 86 },
+        { name: "红利低波", value: 79 },
+        { name: "创新药", value: 71 },
+        { name: "消费复苏", value: 64 }
+      ];
+
+      const headlineEvents = [
+        { title: "通信设备景气数据继续抬升", text: "直接抬高相关主题基金消息面评分与推荐优先级。" },
+        { title: "红利风格资金回流增强", text: "低波方向防守属性提升，更适合作为稳健型推荐池补充。" },
+        { title: "创新药政策扰动仍在", text: "医药基金短期波动会更大，需结合事件落地节奏。" }
+      ];
+
+      const strategies = {
+        balanced: {
+          title: "平衡型推荐逻辑",
+          desc: "技术面、消息面、稳定性和主题热度均衡打分，适合先做产品一期默认模式。",
+          tag: "默认策略",
+          user: "不想只追热点，也不想太保守，偏向“可解释 + 稳妥”的推荐方式。",
+          factors: "技术面 35%，消息面 25%，稳定性 20%，主题热度 20%。",
+          filter: "主题：AI 算力 / 红利低波，持有周期：1-3 个月，风险偏好：平衡。",
+          rows: [
+            { code: "021933", decision: "建议买入", tone: "good", score: 84, reason: "主题热度高，趋势延续，消息面最强", risk: "短期涨幅偏大" },
+            { code: "016370", decision: "可分批关注", tone: "good", score: 78, reason: "综合得分均衡，适合平滑介入", risk: "接近阶段压力位" },
+            { code: "021735", decision: "观察中", tone: "warn", score: 72, reason: "防守属性好，适合作为平衡仓位", risk: "进攻性较弱" }
+          ]
+        },
+        steady: {
+          title: "稳健型推荐逻辑",
+          desc: "优先回撤控制和稳定性，对主题热度权重下降，更适合守住净值波动。",
+          tag: "低波优先",
+          user: "更在意回撤和持有体验，希望不要因为短期消息波动过度影响决策。",
+          factors: "稳定性 45%，技术面 20%，消息面 15%，主题热度 20%。",
+          filter: "主题：红利低波 / 大盘均衡，持有周期：1-2 月，风险偏好：稳健。",
+          rows: [
+            { code: "021735", decision: "可配置", tone: "good", score: 79, reason: "低波红利结构稳，适合做组合压舱石", risk: "上涨弹性有限" },
+            { code: "000011", decision: "观察中", tone: "warn", score: 73, reason: "底仓稳定，适合长期观察", risk: "短期缺少强催化" },
+            { code: "016370", decision: "观察中", tone: "warn", score: 71, reason: "质量尚可，但短期波动略高于稳健需求", risk: "不适合急于重仓" }
+          ]
+        },
+        aggressive: {
+          title: "进取型推荐逻辑",
+          desc: "提升趋势和消息面权重，推荐更偏向主题共振和短中期进攻机会。",
+          tag: "进攻优先",
+          user: "愿意承受更高波动，希望抓住当前市场最强方向。",
+          factors: "技术面 35%，消息面 35%，稳定性 10%，主题热度 20%。",
+          filter: "主题：AI 算力 / 景气成长，持有周期：2-4 周，风险偏好：进取。",
+          rows: [
+            { code: "021933", decision: "建议买入", tone: "good", score: 88, reason: "指数映射清晰，强趋势最强", risk: "高波动、高拥挤" },
+            { code: "016370", decision: "可分批关注", tone: "good", score: 80, reason: "消息面稳定，具备继续上行条件", risk: "追高时盈亏比下降" },
+            { code: "021735", decision: "暂不优先", tone: "bad", score: 65, reason: "防守型方向，不适合作为主攻仓位", risk: "弹性偏弱" }
+          ]
+        }
+      };
+
+      const newsEvents = [
+        {
+          time: "09:10",
+          theme: "AI 算力",
+          title: "通信设备景气跟踪数据向上",
+          text: "影响方向：利好 | 强度：高 | 对相关指数基金和主题联接基金提升明显。",
+          impacts: [
+            { code: "021933", relation: "关联度高 | 推荐排名上升 | 适合进取和平衡策略" },
+            { code: "016370", relation: "关联度中高 | 对消息面评分有正向抬升" }
+          ]
+        },
+        {
+          time: "10:35",
+          theme: "红利低波",
+          title: "红利风格资金回流",
+          text: "影响方向：利好 | 强度：中 | 对低波和红利类产品的稳健推荐权重提升。",
+          impacts: [
+            { code: "021735", relation: "关联度高 | 稳健策略中排名明显改善" },
+            { code: "000011", relation: "关联度中 | 对均衡型底仓情绪略有支撑" }
+          ]
+        },
+        {
+          time: "14:20",
+          theme: "创新药",
+          title: "医药行业政策扰动",
+          text: "影响方向：偏空 | 强度：中 | 会压低相关主题基金的短期推荐意愿。",
+          impacts: [
+            { code: "021735", relation: "低相关 | 直接影响较小" },
+            { code: "016370", relation: "弱相关 | 组合风险偏好会间接受到影响" }
+          ]
+        }
+      ];
+
+      const portfolioHoldings = [
+        { code: "021933", shares: 12800, estChange: "+2.18%", profit: "+612" },
+        { code: "016370", shares: 21000, estChange: "+1.26%", profit: "+438" },
+        { code: "021735", shares: 16800, estChange: "+0.54%", profit: "+149" },
+        { code: "000011", shares: 9000, estChange: "+0.31%", profit: "+87" }
+      ];
+
+      const mockOcrResults = [
+        { code: "021933", name: "富国中证通信设备联接A", shares: "12,800 份", amount: "36,420 元", confidence: "高" },
+        { code: "016370", name: "信澳业绩驱动混合A", shares: "21,000 份", amount: "48,600 元", confidence: "高" },
+        { code: "021735", name: "景顺长城沪港深红利成长低波指数E", shares: "16,800 份", amount: "29,280 元", confidence: "中" }
+      ];
+
+      const state = {
+        currentCode: "016370",
+        currentStrategy: "balanced",
+        analysisTab: "summary",
+        homeFilter: "focus",
+        eventTheme: "all",
+        ocrResults: [],
+        ocrJobId: null,
+        recommendationItems: null,
+        portfolioSummary: null,
+        portfolioItems: [...portfolioHoldings]
+      };
+
+      const els = {
+        fundCodeInput: document.getElementById("fundCodeInput"),
+        analyzeBtn: document.getElementById("analyzeBtn"),
+        analysisLoading: document.getElementById("analysisLoading"),
+        analysisCode: document.getElementById("analysisCode"),
+        analysisName: document.getElementById("analysisName"),
+        analysisDesc: document.getElementById("analysisDesc"),
+        analysisDecision: document.getElementById("analysisDecision"),
+        scoreRing: document.getElementById("scoreRing"),
+        scoreValue: document.getElementById("scoreValue"),
+        analysisTitle: document.getElementById("analysisTitle"),
+        analysisSummary: document.getElementById("analysisSummary"),
+        confidenceValue: document.getElementById("confidenceValue"),
+        holdingWindow: document.getElementById("holdingWindow"),
+        actionText: document.getElementById("actionText"),
+        technicalScore: document.getElementById("technicalScore"),
+        newsScore: document.getElementById("newsScore"),
+        riskScore: document.getElementById("riskScore"),
+        technicalHint: document.getElementById("technicalHint"),
+        newsHint: document.getElementById("newsHint"),
+        riskHint: document.getElementById("riskHint"),
+        reasonList: document.getElementById("reasonList"),
+        reasonPanelTitle: document.getElementById("reasonPanelTitle"),
+        reasonPanelDesc: document.getElementById("reasonPanelDesc"),
+        reasonTabTag: document.getElementById("reasonTabTag"),
+        riskList: document.getElementById("riskList"),
+        focusFundList: document.getElementById("focusFundList"),
+        themeBars: document.getElementById("themeBars"),
+        headlineEvents: document.getElementById("headlineEvents"),
+        recommendationBody: document.getElementById("recommendationBody"),
+        strategyTitle: document.getElementById("strategyTitle"),
+        strategyDesc: document.getElementById("strategyDesc"),
+        strategyTag: document.getElementById("strategyTag"),
+        strategyUser: document.getElementById("strategyUser"),
+        strategyFactors: document.getElementById("strategyFactors"),
+        strategyFilter: document.getElementById("strategyFilter"),
+        recCountTag: document.getElementById("recCountTag"),
+        newsTimeline: document.getElementById("newsTimeline"),
+        eventImpactList: document.getElementById("eventImpactList"),
+        impactTag: document.getElementById("impactTag"),
+        marketHeat: document.getElementById("marketHeat"),
+        marketHeatDelta: document.getElementById("marketHeatDelta"),
+        eventCount: document.getElementById("eventCount"),
+        poolCount: document.getElementById("poolCount"),
+        homeFilterTag: document.getElementById("homeFilterTag"),
+        portfolioMarketValue: document.getElementById("portfolioMarketValue"),
+        portfolioDailyProfit: document.getElementById("portfolioDailyProfit"),
+        portfolioDailyRate: document.getElementById("portfolioDailyRate"),
+        portfolioFundCount: document.getElementById("portfolioFundCount"),
+        valuationUpdateTag: document.getElementById("valuationUpdateTag"),
+        holdingsBody: document.getElementById("holdingsBody"),
+        ocrList: document.getElementById("ocrList"),
+        ocrResultTag: document.getElementById("ocrResultTag"),
+        ocrStatus: document.getElementById("ocrStatus")
+      };
+
+      function badgeClass(label, tone) {
+        if (label.includes("建议买入")) return "mini-badge buy";
+        if (label.includes("可分批关注")) return "mini-badge phased";
+        if (label.includes("可配置")) return "mini-badge config";
+        if (label.includes("观察") || label.includes("观望")) return "mini-badge warn";
+        if (label.includes("暂不优先")) return "mini-badge bad";
+        if (tone === "good") return "mini-badge good";
+        if (tone === "bad") return "mini-badge bad";
+        return "mini-badge warn";
+      }
+
+      function decisionToneFromText(text) {
+        if (text.includes("建议买入") || text.includes("可分批") || text.includes("可配置")) return "good";
+        if (text.includes("暂不优先")) return "bad";
+        return "warn";
+      }
+
+      function setActive(selector, value, attr = "data-code") {
+        document.querySelectorAll(selector).forEach((node) => {
+          node.classList.toggle("active", node.getAttribute(attr) === value);
+        });
+      }
+
+      async function apiGet(path) {
+        const response = await fetch(`${API_BASE}${path}`);
+        if (!response.ok) {
+          throw new Error(`请求失败: ${response.status}`);
+        }
+        return response.json();
+      }
+
+      async function apiPost(path, payload = {}) {
+        const response = await fetch(`${API_BASE}${path}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          throw new Error(`请求失败: ${response.status}`);
+        }
+        return response.json();
+      }
+
+      function mergeFundFromApi(detail, analysis) {
+        const base = funds[detail.code] || {};
+        funds[detail.code] = {
+          ...base,
+          code: detail.code,
+          name: detail.name,
+          type: detail.fund_type,
+          riskLevel: detail.risk_level,
+          updatedAt: analysis?.updated_at || base.updatedAt || "刚刚更新",
+          decision: analysis?.decision || base.decision || "观察中",
+          decisionTone: decisionToneFromText(analysis?.decision || base.decision || "观察中"),
+          score: analysis?.score || base.score || 0,
+          confidence: analysis?.confidence || base.confidence || "-",
+          holdingWindow: analysis?.holding_window || base.holdingWindow || "-",
+          action: analysis?.action || base.action || "-",
+          summaryTitle: analysis?.summary_title || base.summaryTitle || "",
+          summaryText: analysis?.summary_text || base.summaryText || "",
+          technical: {
+            score: analysis?.technical?.score ?? base.technical?.score ?? 0,
+            hint: analysis?.technical?.hint || base.technical?.hint || ""
+          },
+          news: {
+            score: analysis?.news?.score ?? base.news?.score ?? 0,
+            hint: analysis?.news?.hint || base.news?.hint || ""
+          },
+          risk: {
+            score: analysis?.risk?.score ?? base.risk?.score ?? 0,
+            hint: analysis?.risk?.hint || base.risk?.hint || ""
+          },
+          reasons: analysis?.reasons || base.reasons || { summary: [], technical: [], news: [] },
+          events: analysis?.events || base.events || [],
+          risks: analysis?.risks || base.risks || []
+        };
+        return funds[detail.code];
+      }
+
+      async function loadFundAnalysis(code) {
+        const [detail, analysis] = await Promise.all([apiGet(`/funds/${code}`), apiGet(`/analysis/${code}`)]);
+        mergeFundFromApi(detail, analysis);
+        state.currentCode = code;
+      }
+
+      async function loadRecommendations() {
+        const data = await apiGet(`/recommendations?strategy=${state.currentStrategy}`);
+        state.recommendationItems = data.items.map((item) => ({
+          code: item.fund_code,
+          decision: item.decision,
+          tone: decisionToneFromText(item.decision),
+          score: item.score,
+          reason: item.reason,
+          risk: item.risk
+        }));
+        return data;
+      }
+
+      async function loadPortfolio() {
+        const data = await apiGet("/portfolio");
+        state.portfolioSummary = data.summary;
+        state.portfolioItems = data.holdings.map((item) => ({
+          code: item.fund_code,
+          shares: item.shares,
+          estChange: `${item.estimated_change_rate >= 0 ? "+" : ""}${item.estimated_change_rate.toFixed(2)}%`,
+          profit: `${item.estimated_profit >= 0 ? "+" : ""}${Math.round(item.estimated_profit)}`
+        }));
+        return data;
+      }
+
+      function renderFocusFunds() {
+        const items = homeFilters[state.homeFilter];
+        const names = { focus: "今日关注", momentum: "趋势优先", risk: "风险提醒" };
+        els.homeFilterTag.textContent = `当前视图：${names[state.homeFilter]}`;
+        els.focusFundList.innerHTML = items
+          .map(({ code, meta }) => {
+            const fund = funds[code];
+            return `
+              <button class="fund-item ${code === state.currentCode ? "active" : ""}" data-code="${code}">
+                <div class="fund-row">
+                  <div class="fund-name">${code} | ${fund.name}</div>
+                  <span class="${badgeClass(fund.decision, fund.decisionTone)}">${fund.decision}</span>
+                </div>
+                <div class="fund-meta">${meta}</div>
+              </button>
+            `;
+          })
+          .join("");
+      }
+
+      function renderThemes() {
+        els.themeBars.innerHTML = themeData
+          .map(
+            (item) => `
+              <div class="bar-row">
+                <span>${item.name}</span>
+                <div class="bar-track"><div class="bar-fill" style="width:${item.value}%"></div></div>
+                <strong>${item.value}</strong>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function renderHeadlineEvents() {
+        els.headlineEvents.innerHTML = headlineEvents
+          .map(
+            (item) => `
+              <div class="event-item">
+                <div class="event-title">${item.title}</div>
+                <div class="event-meta">${item.text}</div>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function renderAnalysis() {
+        const fund = funds[state.currentCode];
+        const percent = Math.max(0, Math.min(100, fund.score));
+
+        els.analysisCode.textContent = fund.code;
+        els.analysisName.textContent = fund.name;
+        els.analysisDesc.textContent = `${fund.type} | 风险等级：${fund.riskLevel} | 更新时间：${fund.updatedAt} | 支持基金代码直达分析`;
+        els.analysisDecision.textContent = fund.decision;
+        els.analysisDecision.className = badgeClass(fund.decision, fund.decisionTone);
+        els.analysisTitle.textContent = fund.summaryTitle;
+        els.analysisSummary.textContent = fund.summaryText;
+        els.confidenceValue.textContent = fund.confidence;
+        els.holdingWindow.textContent = fund.holdingWindow;
+        els.actionText.textContent = fund.action;
+        els.technicalScore.textContent = fund.technical.score;
+        els.newsScore.textContent = fund.news.score;
+        els.riskScore.textContent = fund.risk.score;
+        els.technicalHint.textContent = fund.technical.hint;
+        els.newsHint.textContent = fund.news.hint;
+        els.riskHint.textContent = fund.risk.hint;
+        els.scoreValue.textContent = fund.score;
+        els.scoreRing.style.background = `conic-gradient(var(--brand) 0 ${percent}%, rgba(255,255,255,0.08) ${percent}% 100%)`;
+
+        const tabMap = {
+          summary: { title: "综合结论拆解", desc: "展示当前判断的主要支持因素。", tag: "综合" },
+          technical: { title: "技术面拆解", desc: "突出均线、趋势、动量与回撤状态。", tag: "技术面" },
+          news: { title: "消息面拆解", desc: "关注事件强度、时效和基金关联度。", tag: "消息面" }
+        };
+
+        const tabInfo = tabMap[state.analysisTab];
+        els.reasonPanelTitle.textContent = tabInfo.title;
+        els.reasonPanelDesc.textContent = tabInfo.desc;
+        els.reasonTabTag.textContent = tabInfo.tag;
+        els.reasonList.innerHTML = fund.reasons[state.analysisTab]
+          .map(
+            (item) => `
+              <div class="reason-item">
+                <strong>${item.title}</strong>
+                <p>${item.text}</p>
+              </div>
+            `
+          )
+          .join("");
+
+
+        els.riskList.innerHTML = fund.risks
+          .map(
+            (item) => `
+              <div class="reason-item">
+                <strong>${item.title}</strong>
+                <p>${item.text}</p>
+              </div>
+            `
+          )
+          .join("");
+
+        els.fundCodeInput.value = fund.code;
+        setActive(".quick-code", fund.code, "data-code");
+        renderFocusFunds();
+        renderRecommendations();
+      }
+
+      function renderRecommendations() {
+        const strategy = strategies[state.currentStrategy];
+        els.strategyTitle.textContent = strategy.title;
+        els.strategyDesc.textContent = strategy.desc;
+        els.strategyTag.textContent = strategy.tag;
+        els.strategyUser.textContent = strategy.user;
+        els.strategyFactors.textContent = strategy.factors;
+        els.strategyFilter.textContent = strategy.filter;
+        const rows = state.recommendationItems || strategy.rows;
+        els.recCountTag.textContent = `Top ${rows.length}`;
+
+        els.recommendationBody.innerHTML = rows
+          .map((row, index) => {
+            const fund = funds[row.code];
+            const active = row.code === state.currentCode ? "active" : "";
+            return `
+              <tr class="rec-row ${active}" data-code="${row.code}">
+                <td>${index + 1}</td>
+                <td class="rec-code">${row.code}</td>
+                <td>${fund.name}</td>
+                <td><span class="${badgeClass(row.decision, decisionToneFromText(row.decision))}">${row.decision}</span></td>
+                <td><span class="score-pill">${row.score}</span></td>
+                <td>${row.reason}</td>
+                <td>${row.risk}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function filteredEvents() {
+        if (state.eventTheme === "all") return newsEvents;
+        return newsEvents.filter((item) => item.theme === state.eventTheme);
+      }
+
+      function renderNews() {
+        const items = filteredEvents();
+        els.newsTimeline.innerHTML = items
+          .map(
+            (item) => `
+              <div class="timeline-item">
+                <div class="timeline-time">${item.time}</div>
+                <div class="timeline-card">
+                  <strong>${item.title}</strong>
+                  <p>${item.text}</p>
+                  <div class="quick-codes" style="margin-top:10px;">
+                    <span class="chip">${item.theme}</span>
+                    <span class="chip">事件强度已入评分模型</span>
+                  </div>
+                </div>
+              </div>
+            `
+          )
+          .join("");
+
+        const impacts = items.flatMap((item) =>
+          item.impacts.map((impact) => ({
+            ...impact,
+            theme: item.theme,
+            title: `${impact.code} | ${funds[impact.code].name}`
+          }))
+        );
+
+        els.impactTag.textContent = state.eventTheme === "all" ? "关联度排序" : `${state.eventTheme} 主题`;
+        els.eventImpactList.innerHTML = impacts
+          .map(
+            (item) => `
+              <button class="impact-item" data-code="${item.code}">
+                <div class="impact-title">${item.title}</div>
+                <div class="impact-meta">${item.relation} | 主题：${item.theme}</div>
+              </button>
+            `
+          )
+          .join("");
+      }
+
+      function renderPortfolio() {
+        const summary = state.portfolioSummary || {
+          market_value: 128430,
+          daily_profit: 1286,
+          daily_profit_rate: 1.01,
+          holding_count: state.portfolioItems.length,
+          updated_at: "2026-05-06 14:36"
+        };
+        const rows = state.portfolioItems || portfolioHoldings;
+
+        els.portfolioMarketValue.textContent = Number(summary.market_value).toLocaleString("zh-CN");
+        els.portfolioDailyProfit.textContent = `${summary.daily_profit >= 0 ? "+" : ""}${Number(summary.daily_profit).toLocaleString("zh-CN")}`;
+        els.portfolioDailyRate.textContent = `${summary.daily_profit_rate >= 0 ? "+" : ""}${Number(summary.daily_profit_rate).toFixed(2)}%`;
+        els.portfolioFundCount.textContent = summary.holding_count;
+        els.valuationUpdateTag.textContent = `估值更新：${summary.updated_at?.slice(11, 16) || "14:36"}`;
+
+        els.holdingsBody.innerHTML = rows
+          .map((item) => {
+            const fund = funds[item.code];
+            const profitClass = String(item.profit).startsWith("-") ? "profit-down" : "profit-up";
+            return `
+              <tr>
+                <td class="holdings-code">${item.code}</td>
+                <td>${fund.name}</td>
+                <td>${Number(item.shares).toLocaleString("zh-CN")} 份</td>
+                <td class="${profitClass}">${item.estChange}</td>
+                <td class="${profitClass}">${item.profit}</td>
+              </tr>
+            `;
+          })
+          .join("");
+
+        els.ocrResultTag.textContent = `OCR 待确认 ${state.ocrResults.length} 条`;
+        els.ocrList.innerHTML =
+          state.ocrResults.length === 0
+            ? `
+              <div class="ocr-item">
+                <div class="ocr-item-head">
+                  <strong>暂无 OCR 结果</strong>
+                  <span class="panel-tag">等待上传</span>
+                </div>
+                <p>点击“模拟 OCR 识别”后，这里会出现解析出的基金代码、名称、份额和金额，并支持一键加入持仓。</p>
+              </div>
+            `
+            : state.ocrResults
+                .map(
+                  (item) => `
+                    <div class="ocr-item">
+                      <div class="ocr-item-head">
+                        <strong>${item.code || item.fund_code} | ${item.name || item.fund_name}</strong>
+                        <span class="${item.confidence === "高" ? "mini-badge buy" : "mini-badge warn"}">识别置信度 ${item.confidence}</span>
+                      </div>
+                      <p>识别份额：${item.shares} | 识别金额：${item.amount} | 匹配方式：优先按基金代码自动匹配。</p>
+                    </div>
+                  `
+                )
+                .join("");
+      }
+
+      async function refreshValuation() {
+        try {
+          await loadPortfolio();
+          renderPortfolio();
+        } catch (error) {
+          console.error(error);
+          randomizeDashboard();
+        }
+      }
+
+      async function simulateOcr() {
+        els.ocrStatus.classList.add("visible");
+        try {
+          const result = await apiPost("/ocr/simulate", { filename: "mock_portfolio.png" });
+          state.ocrJobId = result.job_id;
+          state.ocrResults = result.items.map((item) => ({
+            id: item.id,
+            code: item.fund_code,
+            name: item.fund_name,
+            shares: `${Number(item.shares).toLocaleString("zh-CN")} 份`,
+            amount: `${Number(item.amount).toLocaleString("zh-CN")} 元`,
+            confidence: item.confidence
+          }));
+           } catch (error) {
+          console.error(error);
+          state.ocrResults = mockOcrResults;
+        } finally {
+          els.ocrStatus.classList.remove("visible");
+          renderPortfolio();
+          document.getElementById("portfolio").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+
+      async function confirmOcrResults() {
+        if (state.ocrResults.length === 0) {
+          alert("当前没有待确认的 OCR 识别结果。");
+          return;
+        }
+        try {
+          if (state.ocrJobId) {
+            await apiPost(`/ocr/${state.ocrJobId}/confirm`);
+          }
+          state.ocrResults = [];
+          state.ocrJobId = null;
+          await loadPortfolio();
+          renderPortfolio();
+        } catch (error) {
+          console.error(error);
+          alert("OCR 入库失败，请稍后重试。");
+        }
+      }
+
+      async function switchFund(code, smooth = false) {
+        try {
+          if (!funds[code]) {
+            await loadFundAnalysis(code);
+          } else {
+            await loadFundAnalysis(code);
+          }
+          renderAnalysis();
+          if (smooth) {
+            document.getElementById("analysis").scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        } catch (error) {
+          console.error(error);
+          alert(`基金代码 ${code} 暂未接入或接口不可用。`);
+        }
+      }
+
+      async function simulateAnalyze(code) {
+        els.analysisLoading.classList.add("visible");
+        els.analyzeBtn.disabled = true;
+        try {
+          await loadFundAnalysis(code);
+          renderAnalysis();
+          document.getElementById("analysis").scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (error) {
+          console.error(error);
+          alert(`基金代码 ${code} 查询失败，请检查后端服务或代码是否存在。`);
+        } finally {
+          els.analysisLoading.classList.remove("visible");
+          els.analyzeBtn.disabled = false;
+        }
+      }
+
+      function randomizeDashboard() {
+        const heat = 70 + Math.floor(Math.random() * 8);
+        const events = 4 + Math.floor(Math.random() * 3);
+        const pool = 26 + Math.floor(Math.random() * 6);
+        els.marketHeat.textContent = heat;
+        els.eventCount.textContent = events;
+        els.poolCount.textContent = pool;
+        els.marketHeatDelta.textContent = heat > 74 ? "较昨日 +8，主线情绪继续强化" : "较昨日 +4，风险偏好温和修复";
+      }
+
+      document.getElementById("refreshDashboard").addEventListener("click", randomizeDashboard);
+      document.getElementById("refreshEvents").addEventListener("click", renderNews);
+      document.getElementById("refreshValuation").addEventListener("click", refreshValuation);
+      document.getElementById("simulateOcrBtn").addEventListener("click", simulateOcr);
+      document.getElementById("simulateUploadBtn").addEventListener("click", simulateOcr);
+      document.getElementById("confirmOcrBtn").addEventListener("click", confirmOcrResults);
+      document.getElementById("jumpToAnalysis").addEventListener("click", () => {
+        document.getElementById("analysis").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+      els.analyzeBtn.addEventListener("click", () => simulateAnalyze(els.fundCodeInput.value.trim()));
+      els.fundCodeInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") simulateAnalyze(els.fundCodeInput.value.trim());
+      });
+
+      document.addEventListener("click", (event) => {
+        const codeTarget = event.target.closest("[data-code]");
+        if (codeTarget) {
+          switchFund(codeTarget.getAttribute("data-code"), true);
+        }
+
+        const strategyBtn = event.target.closest("[data-strategy]");
+        if (strategyBtn) {
+          state.currentStrategy = strategyBtn.getAttribute("data-strategy");
+          document.querySelectorAll("[data-strategy]").forEach((node) => {
+            node.classList.toggle("active", node === strategyBtn);
+          });
+          loadRecommendations()
+            .catch((error) => console.error(error))
+            .finally(() => renderRecommendations());
+        }
+
+        const homeFilterBtn = event.target.closest("[data-home-filter]");
+        if (homeFilterBtn) {
+          state.homeFilter = homeFilterBtn.getAttribute("data-home-filter");
+          document.querySelectorAll("[data-home-filter]").forEach((node) => {
+            node.classList.toggle("active", node === homeFilterBtn);
+          });
+          renderFocusFunds();
+        }
+
+        const analysisTabBtn = event.target.closest("[data-analysis-tab]");
+        if (analysisTabBtn) {
+          state.analysisTab = analysisTabBtn.getAttribute("data-analysis-tab");
+          document.querySelectorAll("[data-analysis-tab]").forEach((node) => {
+            node.classList.toggle("active", node === analysisTabBtn);
+          });
+          renderAnalysis();
+        }
+
+        const eventThemeBtn = event.target.closest("[data-event-theme]");
+        if (eventThemeBtn) {
+          state.eventTheme = eventThemeBtn.getAttribute("data-event-theme");
+          document.querySelectorAll("[data-event-theme]").forEach((node) => {
+            node.classList.toggle("active", node === eventThemeBtn);
+          });
+          renderNews();
+        }
+      });
+
+      const navLinks = document.querySelectorAll(".nav-link");
+      const sections = ["overview", "analysis", "portfolio", "recommendation", "news"]
+        .map((id) => document.getElementById(id))
+        .filter(Boolean);
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = `#${entry.target.id}`;
+              navLinks.forEach((link) => link.classList.toggle("active", link.getAttribute("href") === id));
+            }
+          });
+        },
+        { threshold: 0.35 }
+      );
+
+      sections.forEach((section) => observer.observe(section));
+
+      async function initDemo() {
+        renderThemes();
+        renderHeadlineEvents();
+        renderFocusFunds();
+        renderNews();
+        try {
+          await Promise.all([loadFundAnalysis(state.currentCode), loadRecommendations(), loadPortfolio()]);
+        } catch (error) {
+          console.error("初始化接口失败，已回退到原型默认数据", error);
+        }
+        renderAnalysis();
+        renderPortfolio();
+        renderRecommendations();
+      }
+
+      initDemo();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+.DS_Store
+.env
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+dist/
+coverage/
+backend/funding.db
+.dbg/
+.trae/
+backend/uploads/
