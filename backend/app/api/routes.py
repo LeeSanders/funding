@@ -22,8 +22,8 @@ def health() -> MessageResponse:
 
 
 @router.get("/dashboard", response_model=DashboardResponse)
-def get_dashboard(db: Session = Depends(get_db)) -> DashboardResponse:
-    return dashboard_service.get_dashboard(db)
+def get_dashboard(refresh: bool = Query(False), db: Session = Depends(get_db)) -> DashboardResponse:
+    return dashboard_service.get_dashboard(db, refresh=refresh)
 
 
 @router.get("/funds/{code}", response_model=FundDetail)
@@ -43,8 +43,10 @@ def get_analysis(code: str, db: Session = Depends(get_db)) -> FundAnalysisRespon
 
 
 @router.get("/recommendations", response_model=RecommendationResponse)
-def get_recommendations(strategy: str = "steady", db: Session = Depends(get_db)) -> RecommendationResponse:
-    return recommendation_service.get_recommendations(db, strategy)
+def get_recommendations(
+    strategy: str = "steady", refresh: bool = Query(False), db: Session = Depends(get_db)
+) -> RecommendationResponse:
+    return recommendation_service.get_recommendations(db, strategy, refresh=refresh)
 
 
 @router.get("/portfolio", response_model=PortfolioResponse)

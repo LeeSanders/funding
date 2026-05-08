@@ -1,4 +1,6 @@
 from collections import defaultdict
+from copy import deepcopy
+from datetime import datetime, timedelta
 from typing import Dict, List
 
 from sqlalchemy import select
@@ -18,13 +20,15 @@ from app.services.external_fund_service import _classify_fund_board, fetch_top_g
 
 
 DEFAULT_WATCHLIST_CODES = ["016370", "021933", "021735", "000011"]
+DASHBOARD_CACHE_TTL = timedelta(minutes=10)
+_DASHBOARD_CACHE: Dict[str, object] = {"generated_at": None, "response": None}
 
 
-def _dashboard_codes(db: Session, limit: int = 8) -> List[str]:
+def _dashboard_codes(db: Session, limit: int = 8, refresh: bool = False) -> List[str]:
     codes: List[str] = []
     seen = set()
 
-    recommendation_codes = [item.code for item in fetch_top_gainer_fund_candidates(limit=12)]
+    recommendation_codes = [item.code for item in fetch_top_gainer_fund_candidates(limit=12, refresh=refresh)]
     cached_codes = db.scalars(select(Fund.code).order_by(Fund.latest_volume_rank.asc(), Fund.code.asc())).all()
 
     for code in [*recommendation_codes, *cached_codes, *DEFAULT_WATCHLIST_CODES]:
@@ -34,6 +38,13 @@ def _dashboard_codes(db: Session, limit: int = 8) -> List[str]:
         if len(codes) >= limit:
             break
     return codes
+
+
+def _dashboard_cache_is_fresh() -> bool:
+    generated_at = _DASHBOARD_CACHE.get("generated_at")
+    if not isinstance(generated_at, datetime):
+        return False
+    return datetime.now() - generated_at <= DASHBOARD_CACHE_TTL
 
 
 def _build_focus_funds(analyses) -> List[DashboardFundItem]:
@@ -232,8 +243,8 @@ def _build_real_headlines(db: Session, focus_funds: List[DashboardFundItem]) -> 
     return ordered[:3]
 
 
-def get_dashboard(db: Session) -> DashboardResponse:
-    focus_funds = _build_focus_funds_from_db(db, _dashboard_codes(db))
+def _build_dashboard(db: Session, refresh: bool = False) -> DashboardResponse:
+    focus_funds = _build_focus_funds_from_db(db, _dashboard_codes(db, refresh=refresh))
     themes = _build_theme_radar(focus_funds)
     headlines = _build_real_headlines(db, focus_funds)
     timeline = headlines[:]
@@ -256,3 +267,13 @@ def get_dashboard(db: Session) -> DashboardResponse:
         headlines=headlines,
         timeline=timeline[:10],
     )
+
+
+def get_dashboard(db: Session, refresh: bool = False) -> DashboardResponse:
+    if not refresh and _dashboard_cache_is_fresh() and _DASHBOARD_CACHE.get("response") is not None:
+        return deepcopy(_DASHBOARD_CACHE["response"])
+
+    response = _build_dashboard(db, refresh=refresh)
+    _DASHBOARD_CACHE["generated_at"] = datetime.now()
+    _DASHBOARD_CACHE["response"] = deepcopy(response)
+    return response

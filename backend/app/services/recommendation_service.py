@@ -96,13 +96,40 @@ def _latest_snapshot_map(db: Session) -> Dict[str, FundAnalysisSnapshot]:
     return latest
 
 
-def _build_recommendations(db: Session, strategy_key: str) -> RecommendationResponse:
+def _fallback_candidate_rows(db: Session, limit: int) -> List[object]:
+    snapshot_map = _latest_snapshot_map(db)
+    rows = []
+    for fund in db.scalars(select(Fund).order_by(Fund.latest_volume_rank.asc(), Fund.code.asc())).all():
+        snapshot = snapshot_map.get(fund.code)
+        if not snapshot:
+            continue
+        rows.append(
+            type(
+                "FallbackCandidate",
+                (),
+                {
+                    "code": fund.code,
+                    "name": fund.name,
+                    "board": fund.theme or "综合主题",
+                    "daily_change": float(fund.estimated_change_rate or 0.0),
+                },
+            )()
+        )
+    rows.sort(key=lambda item: abs(float(item.daily_change or 0.0)), reverse=True)
+    return rows[:limit]
+
+
+def _build_recommendations(db: Session, strategy_key: str, refresh: bool = False) -> RecommendationResponse:
     config = STRATEGY_CONFIG[strategy_key]
     weights = config["weights"]
     candidates = []
     snapshot_map = _latest_snapshot_map(db)
 
-    for hot_item in fetch_top_gainer_fund_candidates(limit=RECOMMENDATION_CANDIDATE_LIMIT):
+    seed_candidates = fetch_top_gainer_fund_candidates(limit=RECOMMENDATION_CANDIDATE_LIMIT, refresh=refresh)
+    if not seed_candidates:
+        seed_candidates = _fallback_candidate_rows(db, RECOMMENDATION_CANDIDATE_LIMIT)
+
+    for hot_item in seed_candidates:
         snapshot = snapshot_map.get(hot_item.code)
         fund = db.get(Fund, hot_item.code)
         if snapshot and fund:
@@ -239,13 +266,13 @@ def _build_recommendations(db: Session, strategy_key: str) -> RecommendationResp
     )
 
 
-def get_recommendations(db: Session, strategy: str) -> RecommendationResponse:
+def get_recommendations(db: Session, strategy: str, refresh: bool = False) -> RecommendationResponse:
     strategy_key = strategy if strategy in STRATEGY_CONFIG else "steady"
-    if _cache_is_fresh(strategy_key):
+    if not refresh and _cache_is_fresh(strategy_key):
         return deepcopy(_RECOMMENDATION_CACHE[strategy_key]["response"])
 
     try:
-        response = _build_recommendations(db, strategy_key)
+        response = _build_recommendations(db, strategy_key, refresh=refresh)
         _RECOMMENDATION_CACHE[strategy_key] = {
             "generated_at": datetime.now(),
             "response": deepcopy(response),

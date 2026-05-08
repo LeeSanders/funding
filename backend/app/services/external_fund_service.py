@@ -2,7 +2,7 @@ import html
 import json
 import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -21,6 +21,8 @@ FUND_RANKING_URL = (
     "https://fund.eastmoney.com/data/fundranking.html"
     "?ft=all&rs=&gs=0&sc=rzdf&st=desc&sd={start_date}&ed={end_date}&qdii=042|&tabSubtype=,,,,,&pi=1&pn=120&dx=1"
 )
+TOP_GAINER_CACHE_TTL = timedelta(minutes=10)
+_TOP_GAINER_CACHE: Dict[str, Any] = {"generated_at": None, "rows": []}
 
 
 @dataclass
@@ -319,7 +321,17 @@ def fetch_hot_fund_candidates(limit: int = 12) -> List[HotFundCandidate]:
     return list(deduped.values())[:limit]
 
 
-def fetch_top_gainer_fund_candidates(limit: int = 24) -> List[RankedFundCandidate]:
+def fetch_top_gainer_fund_candidates(limit: int = 24, refresh: bool = False) -> List[RankedFundCandidate]:
+    generated_at = _TOP_GAINER_CACHE.get("generated_at")
+    cached_rows = _TOP_GAINER_CACHE.get("rows") or []
+    if (
+        not refresh
+        and isinstance(generated_at, datetime)
+        and datetime.now() - generated_at <= TOP_GAINER_CACHE_TTL
+        and cached_rows
+    ):
+        return cached_rows[:limit]
+
     rows: List[RankedFundCandidate] = []
     daily_df = ak.fund_open_fund_daily_em()
     if daily_df.empty:
@@ -364,6 +376,8 @@ def fetch_top_gainer_fund_candidates(limit: int = 24) -> List[RankedFundCandidat
         diversified.append(item)
         if len(diversified) >= limit:
             break
+    _TOP_GAINER_CACHE["generated_at"] = datetime.now()
+    _TOP_GAINER_CACHE["rows"] = diversified[:]
     return diversified
 
 
